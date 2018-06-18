@@ -11,6 +11,7 @@
 
 #include "N5110_SPI.h"
 // define USESPI in above header for HW SPI version
+
 N5110_SPI lcd(9,10,8); // RST,CS,DC
 
 #if USESPI==1
@@ -43,84 +44,42 @@ void setup()
   lcd.init();
 }
 
-// --------------------------------------------------------------------------
-byte scr[84*6];  // full frame buffer - for demo
-byte scrWd = 84;
-byte scrHt = 6;
-
-void clrBuf()
-{
-  int ii=0;
-  for(int i=0;i<scrWd*scrHt;i++) scr[ii++]=0;
-}
-// --------------------------------------------------------------------------
-void drawPixel(int16_t x, int16_t y, uint16_t color) 
-{
-  if(x<0 || x>=scrWd || y<0 || y>=scrHt*8) return;
-  switch (color) {
-    case 1: scr[x+(y/8)*scrWd] |=  (1 << (y&7)); break;
-    case 0: scr[x+(y/8)*scrWd] &= ~(1 << (y&7)); break; 
-    case 2: scr[x+(y/8)*scrWd] ^=  (1 << (y&7)); break; 
-  }
-}
-// --------------------------------------------------------------------------
-
 char buf[40];
 void loop() 
 {
-  int i,j;
+  lcd.clrScr();
+  lcd.setFont(Small5x7PLBold);
+  lcd.setDigitMinWd(8);
+  lcd.printStr(0, 0, "ąćęłóśźż 123");
+  lcd.printStr(0, 1, "ĄĆĘŁÓŚŹŻ 123");
+  lcd.setDigitMinWd(6);
+  lcd.printStr(0, 2, "1234567890123");
+  lcd.setFontMinWd(5);
+  lcd.printStr(0, 3, "abAwij1234");
+  lcd.setFontMinWd(0);
+  lcd.printStr(0, 4, "abAwij1234");
+  lcd.setDigitMinWd(0);
+  lcd.printStr(0, 5, "abAwij1234");
+  delay(5000);
+  
   lcd.clrScr();
   lcd.setFont(Term8x14PL);
-  lcd.printStr(55, 3, "Cnt:");
+  lcd.printStr(42, 3, "Żółw1");
   lcd.drawBitmap(npn, 3, 0);
-  lcd.drawBitmap(ind, 50, 0);
-  lcd.fillWin(40,1,44,2,0xaa);
+  lcd.drawBitmap(ind, 11, 5);
+  lcd.fillWin(60,0,20,2,0xaa);
   lcd.setFont(Small5x7PLBold);
   lcd.printStr(0,2,"B");
   lcd.printStr(30,0,"E");
   lcd.printStr(30,3,"C");
-  lcd.printStr(44,0,"0");
-  lcd.printStr(78,0,"1");
+  lcd.printStr(5,5,"0");
+  lcd.printStr(40,5,"1");
   lcd.setFont(Digits4x7);
   lcd.setDigitMinWd(4);
   
-  // 54x16 pixels graph
-  scrWd = 54;
-  scrHt = 2;
-  for(j=0;j<400;j++) {
-    clrBuf();  
-    for(i = 0;i<scrWd;i++) {
-      int y = sin(i/5.0)*sin(j/10.0+i/10.0)*8+8;
-      drawPixel(i,y,1);
-    }
-    lcd.drawBuf(scr,0,4,scrWd,scrHt);
+  for(int i=0; i<300; i++) {
     snprintf(buf,39,"%06d",random(1,1000000));
-    if((j%4)==0) lcd.printStr(55,5,buf);
-    delay(20);
+    lcd.printStr(55,5,buf);
+    delay(150);
   }
-  
-  // full screen graph
-  scrWd = 84;
-  scrHt = 6;
-  for(j=0;j<400;j++) {
-    clrBuf();  
-    for(i = 0;i<scrWd;i++) {
-      int y = sin(i/10.0)*sin(j/10.0+i/20.0)*24+24;
-      drawPixel(i,y,1);
-      drawPixel(i,y+1,1);
-      drawPixel(i+1,y,1);
-      drawPixel(i+1,y+1,1);
-      drawPixel(i,0,1);
-      drawPixel(i,scrHt*8-1,1);
-    }
-    for(i=1;i<scrHt*8-1;i++) {
-      drawPixel(0,i,1);
-      drawPixel(scrWd-1,i,1);
-    }
-    lcd.drawBuf(scr,0,0,scrWd,scrHt);
-    lcd.setFont(Small5x7PLBold);
-    lcd.printStr(ALIGN_CENTER,1,"GRAPH");
-    delay(20);
-  }
-
 }
