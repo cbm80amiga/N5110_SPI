@@ -256,6 +256,8 @@ void N5110_SPI::setFont(const uint8_t* f)
   ySize8   = (ySize+7)/8;
   minCharWd  = 0;
   minDigitWd = 0;
+  cr = 0;
+  invertCh = 0;
 }
 // ---------------------------------
 int N5110_SPI::printStr(int x, uint8_t y8, char *txt)
@@ -343,9 +345,15 @@ int N5110_SPI::printChar(int x, uint8_t row, uint8_t _ch)
     gotoXY(x, row+j);
     setDat();
     startCS();
-    for(i=0; i<wdL; i++) sendData(0);
-    for(i=0; i<wd; i++)  sendData(pgm_read_byte(font+idx+i*ySize8+j));
-    for(i=0; i<wdR; i++) sendData(0);
+    if(!invertCh) {
+      for(i=0; i<wdL; i++) sendData(0);
+      for(i=0; i<wd; i++)  sendData(pgm_read_byte(font+idx+i*ySize8+j));
+      for(i=0; i<wdR; i++) sendData(0);
+    } else {
+      for(i=0; i<wdL; i++) sendData(0xff);
+      for(i=0; i<wd; i++)  sendData(pgm_read_byte(font+idx+i*ySize8+j)^0xff);
+      for(i=0; i<wdR; i++) sendData(0xff);
+    }
     stopCS();
   }
   return wd+wdL+wdR;

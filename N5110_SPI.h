@@ -80,6 +80,7 @@ public:
 
   void setFont(const uint8_t* f);
 	void setCR(uint8_t _cr) { cr = _cr; }
+	void setInvert(uint8_t _inv) { invertCh = _inv; }
 	void setFontMinWd(uint8_t wd) { minCharWd = wd; }
 	void setCharMinWd(uint8_t wd) { minCharWd = wd; }
 	void setDigitMinWd(uint8_t wd) { minDigitWd = wd; }
@@ -108,6 +109,7 @@ private:
 	uint8_t minDigitWd;
   uint8_t cr;  // carriage return mode for printStr
 	uint8_t dualChar;
+  uint8_t invertCh;
 	
 };
 #endif

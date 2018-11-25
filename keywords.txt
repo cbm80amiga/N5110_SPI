@@ -21,6 +21,7 @@ sleep	KEYWORD2
 setContrast	KEYWORD2
 setBias	KEYWORD2
 setTemp	KEYWORD2
+setInvert	KEYWORD2
 displayMode	KEYWORD2
 	
 SCR_WD	LITERAL1
