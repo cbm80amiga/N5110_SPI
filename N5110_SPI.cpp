@@ -1,5 +1,7 @@
 #include "N5110_SPI.h"
 
+//#define CONVERT_POLISH
+
 #if USESPI==1
 #include <SPI.h>
 #endif
@@ -258,6 +260,7 @@ void N5110_SPI::setFont(const uint8_t* f)
   minDigitWd = 0;
   cr = 0;
   invertCh = 0;
+  invertMask = 0xff;
 }
 // ---------------------------------
 int N5110_SPI::printStr(int x, uint8_t y8, char *txt)
@@ -302,7 +305,11 @@ int N5110_SPI::strWidth(char *txt)
 // ---------------------------------
 int N5110_SPI::charWidth(uint8_t _ch, bool last)
 {
+#ifdef CONVERT_POLISH
   int ch = convertPolish(_ch);
+#else
+  int ch = _ch;
+#endif
   if(!font || ch<firstCh || ch>lastCh) return 0;
   int idx = 4 + (ch - firstCh)*(xSize*ySize8+1);
   int wd = pgm_read_byte(font + idx);
@@ -317,12 +324,17 @@ int N5110_SPI::charWidth(uint8_t _ch, bool last)
     wdL = (minCharWd-wd)/2;
     wdR += (minCharWd-wd-wdL);
   }
-  return last ? wd+wdL+wdR : wd+wdL;  // last!=0 -> get rid of last empty columns
+  return last ? wd+wdL+wdR : wd+wdL+wdR-1;  // last!=0 -> get rid of last empty columns
 }
 // ---------------------------------
 int N5110_SPI::printChar(int x, uint8_t row, uint8_t _ch)
 {
+#ifdef CONVERT_POLISH
   int ch = convertPolish(_ch);
+#else
+  int ch = _ch;
+#endif
+  
   if(!font || ch<firstCh || ch>lastCh || x>=SCR_WD || row>=SCR_HT/8) return 0;
 
   int j,i, idx = 4 + (ch - firstCh)*(xSize*ySize8+1);
@@ -350,9 +362,9 @@ int N5110_SPI::printChar(int x, uint8_t row, uint8_t _ch)
       for(i=0; i<wd; i++)  sendData(pgm_read_byte(font+idx+i*ySize8+j));
       for(i=0; i<wdR; i++) sendData(0);
     } else {
-      for(i=0; i<wdL; i++) sendData(0xff);
-      for(i=0; i<wd; i++)  sendData(pgm_read_byte(font+idx+i*ySize8+j)^0xff);
-      for(i=0; i<wdR; i++) sendData(0xff);
+      for(i=0; i<wdL; i++) sendData(invertMask);
+      for(i=0; i<wd; i++)  sendData(pgm_read_byte(font+idx+i*ySize8+j)^invertMask);
+      for(i=0; i<wdR; i++) sendData(invertMask);
     }
     stopCS();
   }
