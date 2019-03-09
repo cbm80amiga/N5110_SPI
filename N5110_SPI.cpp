@@ -34,6 +34,7 @@ N5110_SPI::N5110_SPI(byte rst, byte cs, byte dc, byte din, byte clk)
 // ---------------------------------
 void N5110_SPI::init()
 {
+  isNumberFun = &isNumber;
   cr = 0;
   font = NULL;
   dualChar = 0;
@@ -303,6 +304,16 @@ int N5110_SPI::strWidth(char *txt)
   return wd-(charWidth(ch,true)-charWidth(ch,false));
 }
 // ---------------------------------
+bool N5110_SPI::isNumber(uint8_t ch)
+{
+  return isdigit(ch) || ch==' ';
+}
+// ---------------------------------
+bool N5110_SPI::isNumberExt(uint8_t ch)
+{
+  return isdigit(ch) || ch=='-' || ch=='+' || ch=='.' || ch==' ';
+}
+// ---------------------------------
 int N5110_SPI::charWidth(uint8_t _ch, bool last)
 {
 #ifdef CONVERT_POLISH
@@ -314,7 +325,7 @@ int N5110_SPI::charWidth(uint8_t _ch, bool last)
   int idx = 4 + (ch - firstCh)*(xSize*ySize8+1);
   int wd = pgm_read_byte(font + idx);
   int wdL = 0, wdR = 1; // default spacing before and behind char
-  if(isdigit(ch)) {
+  if((*isNumberFun)(ch)) {
     if(minDigitWd>wd) {
       wdL = (minDigitWd-wd)/2;
       wdR += (minDigitWd-wd-wdL);
@@ -340,7 +351,7 @@ int N5110_SPI::printChar(int x, uint8_t row, uint8_t _ch)
   int j,i, idx = 4 + (ch - firstCh)*(xSize*ySize8+1);
   int wd = pgm_read_byte(font + idx++);
   int wdL = 0, wdR = 1; // default spacing before and behind char
-  if(isdigit(ch)) {
+  if((*isNumberFun)(ch)) {
     if(minDigitWd>wd) {
       wdL = (minDigitWd-wd)/2;
       wdR += (minDigitWd-wd-wdL);

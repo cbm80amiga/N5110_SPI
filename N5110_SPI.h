@@ -90,7 +90,10 @@ public:
   int charWidth(uint8_t _ch, bool last=true);
   int strWidth(char *txt);
 	unsigned char convertPolish(unsigned char _c);
-
+	static bool isNumber(uint8_t ch);
+	static bool isNumberExt(uint8_t ch);
+  void setIsNumberFun(bool (*fun)(uint8_t)) { isNumberFun=fun; }
+  
 public:
   uint8_t csPin  = 10;
   uint8_t rstPin = 9;
@@ -100,6 +103,7 @@ public:
   //uint8_t ledPin = 6;
    
 private:
+  bool (*isNumberFun)(uint8_t ch);
   const uint8_t* font; 
   uint8_t xSize;
 	uint8_t ySize;
