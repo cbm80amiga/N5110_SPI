@@ -8,11 +8,11 @@
 
 const uint8_t initdata[] PROGMEM = {
   PCD8544_FUNCTIONSET | PCD8544_EXTINSTRUCTION,
-	PCD8544_SETVOP | DEFAULT_CONTRAST,
-	PCD8544_SETTEMP | DEFAULT_TEMP,
-	PCD8544_SETBIAS | DEFAULT_BIAS,
-	PCD8544_FUNCTIONSET,
-	PCD8544_DISPLAYCONTROL | PCD8544_DISPLAYNORMAL
+  PCD8544_SETVOP | DEFAULT_CONTRAST,
+  PCD8544_SETTEMP | DEFAULT_TEMP,
+  PCD8544_SETBIAS | DEFAULT_BIAS,
+  PCD8544_FUNCTIONSET,
+  PCD8544_DISPLAYCONTROL | PCD8544_DISPLAYNORMAL
 };
 // ---------------------------------
 N5110_SPI::N5110_SPI(byte rst, byte cs, byte dc)
@@ -106,17 +106,17 @@ void N5110_SPI::sleep(bool mode)
     clrScr();
     setCmd();
     startCS();
-	  sendData(PCD8544_FUNCTIONSET | PCD8544_POWERDOWN);
+    sendData(PCD8544_FUNCTIONSET | PCD8544_POWERDOWN);
     stopCS();
   } else {
     setCmd();
     startCS();
     sendData(PCD8544_FUNCTIONSET | PCD8544_EXTINSTRUCTION);
-	  sendData(PCD8544_SETVOP | DEFAULT_CONTRAST); // contrast
-	  sendData(PCD8544_SETTEMP | DEFAULT_TEMP);
-	  sendData(PCD8544_SETBIAS | DEFAULT_BIAS);
-	  sendData(PCD8544_FUNCTIONSET);
-	  sendData(PCD8544_DISPLAYCONTROL | PCD8544_DISPLAYNORMAL);
+    sendData(PCD8544_SETVOP | DEFAULT_CONTRAST); // contrast
+    sendData(PCD8544_SETTEMP | DEFAULT_TEMP);
+    sendData(PCD8544_SETBIAS | DEFAULT_BIAS);
+    sendData(PCD8544_FUNCTIONSET);
+    sendData(PCD8544_DISPLAYCONTROL | PCD8544_DISPLAYNORMAL);
     stopCS();
   }
 }
@@ -127,8 +127,8 @@ void N5110_SPI::setContrast(byte val)
   if(val<0) val=0;
   setCmd();
   startCS();
-	sendData(PCD8544_FUNCTIONSET | PCD8544_EXTINSTRUCTION);
-	sendData(PCD8544_SETVOP | val);
+  sendData(PCD8544_FUNCTIONSET | PCD8544_EXTINSTRUCTION);
+  sendData(PCD8544_SETVOP | val);
   sendData(PCD8544_FUNCTIONSET);
   stopCS();
 }
@@ -139,8 +139,8 @@ void N5110_SPI::setBias(byte val)
   if(val<0) val=0;
   setCmd();
   startCS();
-	sendData(PCD8544_FUNCTIONSET | PCD8544_EXTINSTRUCTION);
-	sendData(PCD8544_SETBIAS | val);
+  sendData(PCD8544_FUNCTIONSET | PCD8544_EXTINSTRUCTION);
+  sendData(PCD8544_SETBIAS | val);
   sendData(PCD8544_FUNCTIONSET);
   stopCS();
 }
@@ -151,7 +151,7 @@ void N5110_SPI::setTemp(byte val)
   if(val<0) val=0;
   setCmd();
   startCS();
-	sendData(PCD8544_FUNCTIONSET | PCD8544_EXTINSTRUCTION);
+  sendData(PCD8544_FUNCTIONSET | PCD8544_EXTINSTRUCTION);
   sendData(PCD8544_SETTEMP | val);
   sendData(PCD8544_FUNCTIONSET);
   stopCS();
@@ -162,7 +162,7 @@ void N5110_SPI::displayMode(byte val)
 {
   setCmd();
   startCS();
-	sendData(PCD8544_DISPLAYCONTROL | val);
+  sendData(PCD8544_DISPLAYCONTROL | val);
   stopCS();
 }
 // ----------------------------------------------------------------
@@ -205,8 +205,8 @@ int N5110_SPI::fillWin(int x, uint8_t y8, uint8_t wd, uint8_t ht8, uint8_t data)
   for(int i=0; i<ht8; i++) {
     gotoXY(x,y8+i);
     setDat();
-	  startCS();
-	  for(int j=0; j<wd; j++) sendData(data);
+    startCS();
+    for(int j=0; j<wd; j++) sendData(data);
     stopCS();
   }
   return x+wd;
@@ -219,7 +219,7 @@ int N5110_SPI::drawBuf(const uint8_t *bmp, int x, uint8_t y8, uint8_t wd, uint8_
   for(int i=0; i<ht8; i++) {
     gotoXY(x,y8+i);
     setDat();
-  	startCS();
+    startCS();
     sendData(bmp+wdb*i, wd);
     stopCS();
   }
@@ -233,7 +233,7 @@ int N5110_SPI::drawBitmap(const uint8_t *bmp, int x, uint8_t y8, uint8_t wd, uin
   for(int i=0; i<ht8; i++) {
     gotoXY(x,y8+i);
     setDat();
-  	startCS();
+    startCS();
     sendDataF(bmp+wdb*i, wd);
     stopCS();
   }
@@ -264,16 +264,19 @@ void N5110_SPI::setFont(const uint8_t* f)
   invertMask = 0xff;
 }
 // ---------------------------------
-int N5110_SPI::printStr(int x, uint8_t y8, char *txt)
+// clrLine - clears screen before and after text
+int N5110_SPI::printStr(int x, uint8_t y8, char *txt, int clrLine)
 {
   if(!font) return 0;
   int xpos = x;
   int ypos = y8;
+  int wd = strWidth(txt);
   if(xpos==-1)
-    xpos = SCR_WD-strWidth(txt);  // align to right
+    xpos = SCR_WD-wd;  // align to right
   else if(xpos<0)
-    xpos = (SCR_WD-strWidth(txt))/2;  // center
+    xpos = (SCR_WD-wd)/2;  // center
   if(xpos<0) xpos=0;
+  if(clrLine && xpos>0) fillWin(0,y8,xpos,ySize8,0);
   while (*txt) {
     if(*txt==10) { // \n clears area to the end of line and jumps to the next line
       fillWin(xpos,ypos,SCR_WD-xpos,ySize8,0);
@@ -291,6 +294,7 @@ int N5110_SPI::printStr(int x, uint8_t y8, char *txt)
       }
     }
   }
+  if(clrLine && SCR_WD-x>0) fillWin(xpos,y8,SCR_WD-xpos,ySize8,0);
   return xpos;
 }
 // ---------------------------------
@@ -386,7 +390,7 @@ unsigned char N5110_SPI::convertPolish(unsigned char _c)
 {
   unsigned char pl, c = _c;
   if(c==196 || c==197 || c==195) {
-	  dualChar = c;
+    dualChar = c;
     return 0;
   }
   if(dualChar) { // UTF8 coding
